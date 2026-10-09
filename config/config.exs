@@ -1,5 +1,8 @@
 import Config
-config :ash_fk_name_repro, ecto_repos: [AshFkNameRepro.Repo]
+
+config :ash_fk_name_repro,
+  ecto_repos: [AshFkNameRepro.Repo],
+  ash_domains: [AshFkNameRepro.Repro]
 
 # These enable behaviors that will become the default in the next major
 # version of Ash. Setting them now opts your application into the new

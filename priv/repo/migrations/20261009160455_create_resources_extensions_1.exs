@@ -1,4 +1,4 @@
-defmodule AshFkNameRepro.Repo.Migrations.InitializeExtensions1 do
+defmodule AshFkNameRepro.Repo.Migrations.CreateResourcesExtensions1 do
   @moduledoc """
   Installs any extensions that are mentioned in the repo's `installed_extensions/0` callback
 
@@ -113,6 +113,34 @@ defmodule AshFkNameRepro.Repo.Migrations.InitializeExtensions1 do
     $$ LANGUAGE plpgsql
     STABLE
     SET search_path = '';
+    """)
+
+    execute("""
+    CREATE OR REPLACE FUNCTION uuid_generate_v7()
+    RETURNS UUID
+    AS $$
+    DECLARE
+      timestamp    TIMESTAMPTZ;
+      microseconds INT;
+    BEGIN
+      timestamp    = clock_timestamp();
+      microseconds = (cast(extract(microseconds FROM timestamp)::INT - (floor(extract(milliseconds FROM timestamp))::INT * 1000) AS DOUBLE PRECISION) * 4.096)::INT;
+
+      RETURN encode(
+        set_byte(
+          set_byte(
+            overlay(uuid_send(gen_random_uuid()) placing substring(int8send(floor(extract(epoch FROM timestamp) * 1000)::BIGINT) FROM 3) FROM 1 FOR 6
+          ),
+          6, (b'0111' || (microseconds >> 8)::bit(4))::bit(8)::int
+        ),
+        7, microseconds::bit(8)::int
+      ),
+      'hex')::UUID;
+    END
+    $$
+    LANGUAGE PLPGSQL
+    SET search_path = ''
+    VOLATILE;
     """)
   end
 
